@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レトロテトリス - 8bit スタイル</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: #000;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        canvas {
+            border: 4px solid #333;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .pixel-text {
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+        }
+        
+        .retro-button {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+            border: 3px solid #666;
+            box-shadow: 0 4px 0 #111, 0 0 10px rgba(0, 255, 0, 0.2);
+            transition: all 0.1s;
+        }
+        
+        .retro-button:hover {
+            background: linear-gradient(180deg, #5a5a5a 0%, #3a3a3a 100%);
+            box-shadow: 0 4px 0 #111, 0 0 20px rgba(0, 255, 0, 0.4);
+        }
+        
+        .retro-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #111, 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+        
+        .game-over-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .score-board {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 3px solid #333;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-black text-green-400 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-6xl w-full">
+        <!-- タイトル -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl mb-4 pixel-text text-green-400">
+                ▼ RETRO TETRIS ▼
+            </h1>
+            <p class="text-xs md:text-sm text-green-500">
+                - 8 BIT EDITION -
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start justify-center">
+            <!-- ゲームキャンバス -->
+            <div class="flex flex-col items-center">
+                <canvas id="tetrisCanvas" width="300" height="600"></canvas>
+                
+                <!-- コントロール説明 -->
+                <div class="mt-6 p-4 score-board text-green-400 text-xs">
+                    <div class="mb-2 text-center text-green-300">[ CONTROLS ]</div>
+                    <div class="space-y-1">
+                        <div>← → : 移動</div>
+                        <div>↑ : 回転</div>
+                        <div>↓ : 高速落下</div>
+                        <div>SPACE : 一時停止</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- サイドパネル -->
+            <div class="flex flex-col gap-6">
+                <!-- スコアボード -->
+                <div class="p-6 score-board text-green-400 min-w-[280px]">
+                    <div class="text-center mb-4 text-green-300">[ SCORE ]</div>
+                    <div class="text-2xl text-center mb-6 text-yellow-400" id="score">0</div>
+                    
+                    <div class="text-center mb-2 text-green-300">[ LEVEL ]</div>
+                    <div class="text-xl text-center mb-6 text-cyan-400" id="level">1</div>
+                    
+                    <div class="text-center mb-2 text-green-300">[ LINES ]</div>
+                    <div class="text-xl text-center text-purple-400" id="lines">0</div>
+                </div>
+
+                <!-- 次のピース -->
+                <div class="p-6 score-board text-green-400">
+                    <div class="text-center mb-4 text-green-300">[ NEXT ]</div>
+                    <canvas id="nextCanvas" width="120" height="120"></canvas>
+                </div>
+
+                <!-- コントロールボタン -->
+                <div class="flex flex-col gap-3">
+                    <button id="startBtn" class="retro-button text-green-400 px-6 py-3 text-sm">
+                        START
+                    </button>
+                    <button id="pauseBtn" class="retro-button text-yellow-400 px-6 py-3 text-sm" disabled>
+                        PAUSE
+                    </button>
+                    <button id="resetBtn" class="retro-button text-red-400 px-6 py-3 text-sm">
+                        RESET
+                    </button>
+                </div>
+
+                <!-- ハイスコア -->
+                <div class="p-4 score-board text-green-400 text-xs text-center">
+                    <div class="mb-2 text-green-300">[ HI-SCORE ]</div>
+                    <div class="text-lg text-yellow-300" id="highScore">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲームオーバー画面 -->
+        <div id="gameOverScreen" class="fixed inset-0 game-over-overlay hidden items-center justify-center z-50">
+            <div class="text-center p-8 border-4 border-red-600 bg-black">
+                <div class="text-4xl text-red-500 mb-6 blink">
+                    GAME OVER
+                </div>
+                <div class="text-xl text-yellow-400 mb-2">
+                    SCORE: <span id="finalScore">0</span>
+                </div>
+                <div class="text-lg text-cyan-400 mb-6">
+                    LEVEL: <span id="finalLevel">1</span>
+                </div>
+                <button id="restartBtn" class="retro-button text-green-400 px-8 py-4 text-sm mt-4">
+                    PRESS TO RESTART
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
