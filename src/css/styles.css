@@ -1,0 +1,28 @@
+/* 追加のカスタムスタイル */
+
+/* 8bitフォントの読み込みは HTML で行っています */
+
+/* レスポンシブ対応の追加調整 */
+@media (max-width: 768px) {
+    canvas#tetrisCanvas {
+        width: 250px !important;
+        height: 500px !important;
+    }
+    
+    canvas#nextCanvas {
+        width: 100px !important;
+        height: 100px !important;
+    }
+}
+
+/* アニメーション効果 */
+.retro-glow {
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* ピクセル化されたレンダリング */
+* {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
