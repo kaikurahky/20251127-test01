@@ -20,8 +20,8 @@
     text-shadow: 0 0 10px currentColor;
 }
 
-/* ピクセル化されたレンダリング */
-* {
+/* ピクセル化されたレンダリング（キャンバスのみ） */
+canvas {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
